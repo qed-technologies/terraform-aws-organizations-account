@@ -41,9 +41,11 @@ This module requires 2 provider blocks to be passed:
 | block\_public\_policy | Whether Amazon S3 should block public bucket policies for buckets in this account | `bool` | `true` | no |
 | budget\_emails | E-Mail addresses to notify for billing alerts. | `list(string)` | n/a | yes |
 | budget\_limit\_amount | The amount of cost or usage being measured for a budget. | `string` | n/a | yes |
+| create\_iam\_manager\_role | (optional) controls creation of an IAM role used to administer IAM entities in the account | `bool` | `true` | no |
 | ebs\_default\_kms\_key\_arn | ARN of the KMS CMK to be used for ebs encryption by default | `string` | `""` | no |
 | email\_owner | The email address of the owner to assign to the new member account. This email address must not already be associated with another AWS account. | `string` | n/a | yes |
 | hard\_expiry | Whether users are prevented from setting a new password after their password has expired (i.e. require administrator reset) | `bool` | `false` | no |
+| iam\_manager\_trusted\_identities | (optional) a list of identities trusted to assume the IAM Manager role | `list(string)` | `[]` | no |
 | iam\_user\_access\_to\_billing | If set to ALLOW, the new account enables IAM users to access account billing information if they have the required permissions. If set to DENY, then only the root user of the new account can access account billing information. | `string` | `"ALLOW"` | no |
 | ignore\_public\_acls | Whether Amazon S3 should ignore public ACLs for buckets in this account | `bool` | `true` | no |
 | master\_account\_id | The ID of the master account | `string` | n/a | yes |
@@ -51,6 +53,8 @@ This module requires 2 provider blocks to be passed:
 | minimum\_password\_length | Minimum length to require for user passwords | `number` | `16` | no |
 | organizational\_unit\_id | Parent Organizational Unit ID for the account. | `string` | n/a | yes |
 | password\_reuse\_prevention | The number of previous passwords that users are prevented from reusing | `number` | `12` | no |
+| permissions\_boundary\_policy | (optional) IAM JSON policy document with permission boundaries | `string` | `""` | no |
+| region | (required) AWS region where resources will be deployed | `string` | n/a | yes |
 | require\_lowercase\_characters | Whether to require lowercase characters for user passwords | `bool` | `true` | no |
 | require\_numbers | Whether to require numbers for user passwords | `bool` | `true` | no |
 | require\_symbols | Whether to require symbols for user passwords | `bool` | `true` | no |

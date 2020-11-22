@@ -3,6 +3,11 @@ variable "master_account_id" {
   type        = string
 }
 
+variable "region" {
+  type        = string
+  description = "(required) AWS region where resources will be deployed"
+}
+
 variable "tags" {
   description = "Key-value mapping of resource tags to apply to all resources in this module."
   type        = map(string)
@@ -12,6 +17,11 @@ variable "tags" {
 #----------
 # Account
 #----------
+variable "account_alias" {
+  description = "(Required) The account alias"
+  type        = string
+}
+
 variable "budget_emails" {
   description = "E-Mail addresses to notify for billing alerts."
   type        = list(string)
@@ -52,12 +62,6 @@ variable "tags_account" {
 #---------
 # iam.tf
 #---------
-# Account alias
-variable "account_alias" {
-  description = "(Required) The account alias"
-  type        = string
-}
-
 # Password policy
 variable "allow_users_to_change_password" {
   description = "Whether to allow users to change their own password"
@@ -111,6 +115,25 @@ variable "require_symbols" {
   description = "Whether to require symbols for user passwords"
   type        = bool
   default     = true
+}
+
+# IAM Manager Role
+variable "create_iam_manager_role" {
+  description = "(optional) controls creation of an IAM role used to administer IAM entities in the account"
+  type        = bool
+  default     = true
+}
+
+variable "permissions_boundary_policy" {
+  description = "(optional) IAM JSON policy document with permission boundaries"
+  type        = string
+  default     = ""
+}
+
+variable "iam_manager_trusted_identities" {
+  description = "(optional) a list of identities trusted to assume the IAM Manager role"
+  type        = list(string)
+  default     = []
 }
 
 #-----------

@@ -5,6 +5,7 @@
 module "account_example-account_dev" {
   source    = "../"
 
+  region                  = "us-east-1"
   master_account_id       = "01234567891"
   account_alias           = "account-1"
   email_owner             = "example-account_dev@example.com"
@@ -17,6 +18,9 @@ module "account_example-account_dev" {
     "user1@example.com",
     "user2@example.com",
   ]
+
+  permissions_boundary_policy    = data.aws_iam_policy_document.MyPermissionsBoundary.json
+  iam_manager_trusted_identities = ["arn:aws:iam::123456789012:/role/sso"]
 
   tags = {
     key = "value"
