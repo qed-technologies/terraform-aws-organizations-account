@@ -124,16 +124,21 @@ variable "create_iam_manager_role" {
   default     = true
 }
 
-variable "permissions_boundary_policy" {
-  description = "(optional) IAM JSON policy document with permission boundaries"
+variable "iam_namespace" {
+  description = "(optional) Namespace to categorise the IAM entities created by this module under"
   type        = string
-  default     = ""
+  default     = "org"
 }
 
 variable "iam_manager_trusted_identities" {
   description = "(optional) a list of identities trusted to assume the IAM Manager role"
   type        = list(string)
   default     = []
+}
+
+variable "permitted_services" {
+  description = "(required) a list of services this account is permitted to access"
+  type        = list(string)
 }
 
 #-----------

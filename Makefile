@@ -1,6 +1,6 @@
 AWS_PROFILE				:= default
 AWS_REGION				:= eu-west-2
-DIR_TERRAFORM			:= test
+DIR_TERRAFORM			:= example
 FILE_CREDENTIALS_DOCKER	:= /tmp/credentials
 FILE_CREDENTIALS_HOST	:= $(HOME)/.aws/credentials
 TF_VERSION				:= 0.13.4

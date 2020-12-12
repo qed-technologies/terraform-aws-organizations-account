@@ -19,8 +19,16 @@ module "account_example-account_dev" {
     "user2@example.com",
   ]
 
-  permissions_boundary_policy    = data.aws_iam_policy_document.MyPermissionsBoundary.json
-  iam_manager_trusted_identities = ["arn:aws:iam::123456789012:/role/sso"]
+  iam_namespace = "my-org"
+
+  permitted_services = [
+    "dynamodb",
+    "s3"
+  ]
+
+  iam_manager_trusted_identities = [
+    "arn:aws:iam::123456789012:/role/sso"
+  ]
 
   tags = {
     key = "value"
