@@ -71,7 +71,8 @@ resource "aws_iam_policy" "iam_manager" {
 
 data "aws_iam_policy_document" "iam_manager" {
   statement {
-    sid    = "EnforceIamBoundary"
+    sid = "EnforceIamBoundary"
+
     effect = "Allow"
 
     actions = [
@@ -88,8 +89,48 @@ data "aws_iam_policy_document" "iam_manager" {
     condition {
       test     = "StringEquals"
       variable = "iam:PermissionsBoundary"
-      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/OrgBoundary"]
+      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/OrgBoundary"]
     }
+  }
+
+  statement {
+    sid = "ManageIamPolicies"
+
+    effect = "Allow"
+
+    actions = [
+      "iam:CreatePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicy",
+      "iam:DeletePolicyVersion",
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:ListPolicy",
+      "iam:ListPolicyVersions"
+    ]
+
+    resources = [
+      "arn:aws:iam::${aws_organizations_account.account.id}:policy/*"
+    ]
+  }
+
+  statement {
+    sid = "ManageIamRoles"
+
+    effect = "Allow"
+
+    actions = [
+      "iam:DeleteRole",
+      "iam:GetRole",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
+      "iam:TagRole",
+      "iam:UntagRole"
+    ]
+
+    resources = [
+      "arn:aws:iam::${aws_organizations_account.account.id}:role/*"
+    ]
   }
 }
 
@@ -152,7 +193,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # Policies
-      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/*",
+      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/OrgBoundary",
       # Terraform State
       aws_dynamodb_table.terraform.arn,
       aws_s3_bucket.terraform.arn,
@@ -334,6 +375,24 @@ data "aws_iam_policy_document" "terraform_state_write" {
 
     resources = [
       "${aws_s3_bucket.terraform.arn}/*"
+    ]
+  }
+
+  statement {
+    sid = "AllowStateCmkUse"
+
+    effect = "Allow"
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+
+    resources = [
+      aws_kms_key.terraform.arn
     ]
   }
 }

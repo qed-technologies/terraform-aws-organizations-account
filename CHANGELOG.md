@@ -1,5 +1,11 @@
 # Release Notes
 
+## v1.2.1 2020-12-20
+
+### Bug Fixes
+
+- Add required permissions for IAM Manager role to manage: policies, roles and role tags as expected
+
 ## v1.2.0 2020-12-20
 
 ### Bug Fixes
