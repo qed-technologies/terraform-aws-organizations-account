@@ -19,7 +19,7 @@ This module requires 2 provider blocks to be passed:
 
 | Name | Version |
 |------|---------|
-| terraform | >= 0.12.7, < 0.14 |
+| terraform | >= 0.13.0, < 0.15 |
 | aws | >= 2.68, < 4.0 |
 
 ## Providers

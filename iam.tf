@@ -33,7 +33,7 @@ resource "aws_iam_account_password_policy" "this" {
 # IAM manager role
 #-------------------
 module "iam_role_iam_manager" {
-  source = "github.com/qed-technologies/terraform-aws-iam-role?ref=v2.1.0"
+  source = "github.com/qed-technologies/terraform-aws-iam-role?ref=v2.1.1"
 
   providers = {
     aws = aws.member
@@ -106,7 +106,7 @@ data "aws_iam_policy_document" "iam_manager" {
       "iam:GetPolicy",
       "iam:GetPolicyVersion",
       "iam:ListPolicy",
-      "iam:ListPolicyVersions"
+      "iam:ListPolicyVersions",
     ]
 
     resources = [
@@ -125,7 +125,8 @@ data "aws_iam_policy_document" "iam_manager" {
       "iam:ListAttachedRolePolicies",
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
-      "iam:UntagRole"
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy"
     ]
 
     resources = [
@@ -173,6 +174,8 @@ data "aws_iam_policy_document" "permissions_boundary" {
       "iam:DeletePolicy",
       "iam:DeletePolicyVersion",
       "iam:SetDefaultPolicyVersion",
+      # Roles
+      "iam:UpdateAssumeRolePolicy",
       # Terraform State
       "dynamodb:DeleteTable",
       "s3:DeleteBucket",
@@ -193,7 +196,9 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # Policies
-      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/OrgBoundary",
+      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/*",
+      # Roles
+      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.iam_namespace}/*",
       # Terraform State
       aws_dynamodb_table.terraform.arn,
       aws_s3_bucket.terraform.arn,

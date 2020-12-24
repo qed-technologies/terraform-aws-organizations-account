@@ -1,5 +1,16 @@
 # Release Notes
 
+## v1.3.0 2020-12-24
+
+### New Features
+
+- Support Terraform v0.14.0
+
+### Enhancements
+
+- Protect IAM roles managed by the Organization
+- Allow `UpdateAssumeRolePolicy` action for IAM Manager role
+
 ## v1.2.1 2020-12-20
 
 ### Bug Fixes
