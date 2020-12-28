@@ -22,6 +22,12 @@ variable "account_alias" {
   type        = string
 }
 
+variable "account_alias_override" {
+  description = "(Optional) An override to rename the account alias"
+  type        = string
+  default     = ""
+}
+
 variable "budget_emails" {
   description = "E-Mail addresses to notify for billing alerts."
   type        = list(string)

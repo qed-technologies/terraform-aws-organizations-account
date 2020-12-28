@@ -20,11 +20,18 @@ resource "aws_organizations_account" "account" {
   )
 }
 
-# Delay resource creation for 5 minutes so we can 
+resource "aws_iam_account_alias" "alias" {
+  count    = len(var.account_alias_override) > 0 ? 1 : 0
+  provider = aws.member
+
+  account_alias = var.account_alias_override
+}
+
+# Delay resource creation for 10 minutes so we can 
 # to give AWS enough time to provision the new account
 resource "null_resource" "account_delay" {
   provisioner "local-exec" {
-    command = "sleep 480"
+    command = "sleep 600"
   }
   triggers = {
     "account_id" = aws_organizations_account.account.id
