@@ -21,7 +21,7 @@ resource "aws_organizations_account" "account" {
 }
 
 resource "aws_iam_account_alias" "alias" {
-  count    = len(var.account_alias_override) > 0 ? 1 : 0
+  count    = length(var.account_alias_override) > 0 ? 1 : 0
   provider = aws.member
 
   account_alias = var.account_alias_override
