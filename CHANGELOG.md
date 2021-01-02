@@ -1,5 +1,11 @@
 # Release Notes
 
+## v1.3.1 2021-01-02
+
+### Enhancements
+
+- Reduce provisioned R/WCU for DynamoDb state lock table to 1 in order to save money
+
 ## v1.3.0 2020-12-24
 
 ### New Features
