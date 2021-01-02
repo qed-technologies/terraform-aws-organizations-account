@@ -184,8 +184,8 @@ resource "aws_dynamodb_table" "terraform" {
   name           = "terraform_state_lock"
   hash_key       = "LockID"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 10
-  write_capacity = 10
+  read_capacity  = 1
+  write_capacity = 1
 
   attribute {
     name = "LockID"
