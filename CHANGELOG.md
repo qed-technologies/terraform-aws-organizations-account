@@ -1,5 +1,12 @@
 # Release Notes
 
+## v1.4.0 2021-01-25
+
+### Enhancements
+
+- Add account ID and name to outputs
+- Rename `account_alias` variable to `account_name`
+
 ## v1.3.1 2021-01-02
 
 ### Enhancements

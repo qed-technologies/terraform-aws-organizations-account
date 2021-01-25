@@ -1,7 +1,7 @@
 resource "aws_organizations_account" "account" {
   provider = aws.master
 
-  name                       = var.account_alias
+  name                       = var.account_name
   email                      = var.email_owner
   iam_user_access_to_billing = var.iam_user_access_to_billing
   parent_id                  = var.organizational_unit_id
@@ -13,7 +13,7 @@ resource "aws_organizations_account" "account" {
 
   tags = merge(
     {
-      "Name" = format("%s", var.account_alias)
+      "Name" = format("%s", var.account_name)
     },
     var.tags_account,
     var.tags

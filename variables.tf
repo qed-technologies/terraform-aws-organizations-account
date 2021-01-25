@@ -17,8 +17,8 @@ variable "tags" {
 #----------
 # Account
 #----------
-variable "account_alias" {
-  description = "(Required) The account alias"
+variable "account_name" {
+  description = "(Required) The name of the account"
   type        = string
 }
 

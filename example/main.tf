@@ -7,7 +7,7 @@ module "account_example-account_dev" {
 
   region                  = "us-east-1"
   master_account_id       = "01234567891"
-  account_alias           = "account-1"
+  account_name            = "account-1"
   email_owner             = "example-account_dev@example.com"
   organizational_unit_id  = "ou-1234-12345678"
   role_name               = "OrgDeploy"

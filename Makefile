@@ -1,4 +1,4 @@
-AWS_PROFILE				:= default
+AWS_PROFILE				:= qed-master
 AWS_REGION				:= eu-west-2
 DIR_TERRAFORM			:= example
 FILE_CREDENTIALS_DOCKER	:= /tmp/credentials
