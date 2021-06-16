@@ -16,6 +16,7 @@ locals {
 #------------------
 resource "aws_iam_account_password_policy" "this" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   max_password_age               = var.max_password_age
   minimum_password_length        = var.minimum_password_length
@@ -39,7 +40,7 @@ module "iam_role_iam_manager" {
     aws = aws.member
   }
 
-  create = var.create_iam_manager_role
+  create = var.create && var.create_iam_manager_role ? true : false
 
   name        = "IamManager"
   description = "Deployed by the Organization to manage IAM resource in this account"
@@ -50,7 +51,7 @@ module "iam_role_iam_manager" {
 
   managed_policy_arns = [
     aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write.arn
+    aws_iam_policy.terraform_state_write[0].arn
   ]
 
   tags = var.tags
@@ -61,7 +62,7 @@ module "iam_role_iam_manager" {
 # --------------------
 resource "aws_iam_policy" "iam_manager" {
   provider = aws.member
-  count    = var.create_iam_manager_role ? 1 : 0
+  count    = var.create && var.create_iam_manager_role ? 1 : 0
 
   name        = "IamManager"
   description = "Allows management of IAM entities in this account"
@@ -140,7 +141,7 @@ data "aws_iam_policy_document" "iam_manager" {
 # -----------------------------
 resource "aws_iam_policy" "permissions_boundary" {
   provider = aws.member
-  count    = var.create_iam_manager_role ? 1 : 0
+  count    = var.create && var.create_iam_manager_role ? 1 : 0
 
   name        = "OrgBoundary"
   path        = local.iam_namespace_final
@@ -330,6 +331,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
 # -----------------------------------------------
 resource "aws_iam_policy" "terraform_state_write" {
   provider = aws.member
+  count = var.create ? 1 : 0
 
   name        = "TerraformStateWrite"
   path        = local.iam_namespace_final

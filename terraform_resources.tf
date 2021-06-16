@@ -10,11 +10,15 @@ locals {
 #----------------------
 resource "aws_s3_bucket" "terraform" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   #checkov:skip=CKV_AWS_18:Access logs not needed yet
   #checkov:skip=CKV_AWS_52:MFA delete not needed yet
   bucket = local.terraform_state_bucket_name
   policy = data.aws_iam_policy_document.s3.json
+  
+  
+  force_destroy = !var.create && var.force_destroy ? true : false
 
   versioning {
     enabled = true
@@ -40,6 +44,7 @@ resource "aws_s3_bucket" "terraform" {
 
 resource "aws_s3_bucket_public_access_block" "terraform" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   bucket = aws_s3_bucket.terraform.id
 
@@ -179,6 +184,7 @@ data "aws_iam_policy_document" "s3" {
 #----------------------------
 resource "aws_dynamodb_table" "terraform" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   #checkov:skip=CKV_AWS_28:State table doesn't need backup enable
   name           = "terraform_state_lock"
@@ -198,6 +204,7 @@ resource "aws_dynamodb_table" "terraform" {
 #----------
 resource "aws_kms_key" "terraform" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   description         = "Terraform State Key"
   policy              = data.aws_iam_policy_document.kms.json
@@ -206,6 +213,7 @@ resource "aws_kms_key" "terraform" {
 
 resource "aws_kms_alias" "terraform" {
   provider = aws.member
+  count    = var.create ? 1 : 0
 
   name          = "alias/terraform-state"
   target_key_id = aws_kms_key.terraform.key_id

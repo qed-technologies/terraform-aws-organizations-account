@@ -33,6 +33,7 @@ resource "null_resource" "account_delay" {
 
 resource "aws_budgets_budget" "budget" {
   provider = aws.master
+  count    = var.create ? 1 : 0
 
   name              = "Overall monthly for ${aws_organizations_account.account.name}"
   budget_type       = "COST"

@@ -1,3 +1,15 @@
+variable "create" {
+  type        = bool
+  description = "Controls creation of all resources.  Set to force when you want to prepare an account for closure."
+  default     = true
+}
+
+variable "force_destroy" {
+  type        = bool
+  description = "Setting to force resource destruction.  Usually needs to be set to true and applied before resource destruction is guaranteed."
+  default     = false
+}
+
 variable "master_account_id" {
   description = "The ID of the master account"
   type        = string
