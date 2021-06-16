@@ -50,8 +50,8 @@ module "iam_role_iam_manager" {
   permissions_boundary_arn = aws_iam_policy.permissions_boundary[0].arn
 
   managed_policy_arns = [
-    aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write[0].arn
+    join("", aws_iam_policy.iam_manager.*.arn),
+    join("", aws_iam_policy.terraform_state_write.*.arn)
   ]
 
   tags = var.tags
@@ -201,12 +201,12 @@ data "aws_iam_policy_document" "permissions_boundary" {
       # Roles
       "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.iam_namespace}/*",
       # Terraform State
-      aws_dynamodb_table.terraform[0].arn,
-      aws_s3_bucket.terraform[0].arn,
+      join("", aws_dynamodb_table.terraform.*.arn),
+      join("", aws_s3_bucket.terraform.*.arn),
       "${aws_s3_bucket.terraform[0].arn}/*",
       # Terraform State Encryption
-      aws_kms_key.terraform[0].arn,
-      aws_kms_alias.terraform[0].arn
+      join("", aws_kms_key.terraform.*.arn),
+      join("", aws_kms_alias.terraform.*.arn)
     ]
   }
 
@@ -233,7 +233,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # State Lock
-      aws_dynamodb_table.terraform[0].arn,
+      join("", aws_dynamodb_table.terraform.*.arn),
       # State File
       join("", aws_s3_bucket.terraform.*.arn),
       "${join("", aws_s3_bucket.terraform.*.arn)}/*",
