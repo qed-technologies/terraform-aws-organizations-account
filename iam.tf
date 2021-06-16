@@ -47,7 +47,7 @@ module "iam_role_iam_manager" {
   path        = local.iam_namespace_final
 
   trusted_identities       = var.iam_manager_trusted_identities
-  permissions_boundary_arn = aws_iam_policy.permissions_boundary[0].arn
+  permissions_boundary_arn = join("", aws_iam_policy.permissions_boundary.*.arn)
 
   managed_policy_arns = [
     join("", aws_iam_policy.iam_manager.*.arn),
