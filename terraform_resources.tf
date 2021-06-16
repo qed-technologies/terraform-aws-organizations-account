@@ -36,7 +36,7 @@ resource "aws_s3_bucket" "terraform" {
     rule {
       apply_server_side_encryption_by_default {
         sse_algorithm     = "aws:kms"
-        kms_master_key_id = aws_kms_key.terraform[0].arn
+        kms_master_key_id = join("", aws_kms_key.terraform.*.arn)
       }
     }
   }
@@ -46,7 +46,7 @@ resource "aws_s3_bucket_public_access_block" "terraform" {
   provider = aws.member
   count    = var.create ? 1 : 0
 
-  bucket = aws_s3_bucket.terraform[0].id
+  bucket = join("", aws_s3_bucket.terraform.*.id)
 
   block_public_acls       = true
   block_public_policy     = true
@@ -173,7 +173,7 @@ data "aws_iam_policy_document" "s3" {
       variable = "s3:x-amz-server-side-encryption-aws-kms-key-id"
 
       values = [
-        aws_kms_key.terraform[0].arn
+        join("", aws_kms_key.terraform.*.arn)
       ]
     }
   }
@@ -216,7 +216,7 @@ resource "aws_kms_alias" "terraform" {
   count    = var.create ? 1 : 0
 
   name          = "alias/terraform-state"
-  target_key_id = aws_kms_key.terraform[0].key_id
+  target_key_id = join("", aws_kms_key.terraform.*.key_id)
 }
 
 data "aws_iam_policy_document" "kms" {

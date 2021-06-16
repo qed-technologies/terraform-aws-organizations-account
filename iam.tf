@@ -235,10 +235,10 @@ data "aws_iam_policy_document" "permissions_boundary" {
       # State Lock
       aws_dynamodb_table.terraform[0].arn,
       # State File
-      aws_s3_bucket.terraform[0].arn,
-      "${aws_s3_bucket.terraform[0].arn}/*",
+      join("", aws_s3_bucket.terraform.*.arn),
+      "${join("", aws_s3_bucket.terraform.*.arn)}/*",
       # State Encryption
-      aws_kms_key.terraform[0].arn
+      join("", aws_kms_key.terraform.*.arn)
     ]
   }
 
@@ -352,7 +352,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_dynamodb_table.terraform[0].arn
+      join("", aws_dynamodb_table.terraform.*.arn)
     ]
   }
 
@@ -366,7 +366,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_s3_bucket.terraform[0].arn
+      join("", aws_s3_bucket.terraform.*.arn)
     ]
   }
 
@@ -381,7 +381,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      "${aws_s3_bucket.terraform[0].arn}/*"
+      "${join("", aws_s3_bucket.terraform.*.arn)}/*"
     ]
   }
 
@@ -399,7 +399,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_kms_key.terraform[0].arn
+      join("", aws_kms_key.terraform.*.arn)
     ]
   }
 }
