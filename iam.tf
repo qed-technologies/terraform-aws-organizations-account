@@ -201,12 +201,12 @@ data "aws_iam_policy_document" "permissions_boundary" {
       # Roles
       "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.iam_namespace}/*",
       # Terraform State
-      aws_dynamodb_table.terraform.arn,
-      aws_s3_bucket.terraform.arn,
-      "${aws_s3_bucket.terraform.arn}/*",
+      aws_dynamodb_table.terraform[0].arn,
+      aws_s3_bucket.terraform[0].arn,
+      "${aws_s3_bucket.terraform[0].arn}/*",
       # Terraform State Encryption
-      aws_kms_key.terraform.arn,
-      aws_kms_alias.terraform.arn
+      aws_kms_key.terraform[0].arn,
+      aws_kms_alias.terraform[0].arn
     ]
   }
 
@@ -233,12 +233,12 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # State Lock
-      aws_dynamodb_table.terraform.arn,
+      aws_dynamodb_table.terraform[0].arn,
       # State File
-      aws_s3_bucket.terraform.arn,
-      "${aws_s3_bucket.terraform.arn}/*",
+      aws_s3_bucket.terraform[0].arn,
+      "${aws_s3_bucket.terraform[0].arn}/*",
       # State Encryption
-      aws_kms_key.terraform.arn
+      aws_kms_key.terraform[0].arn
     ]
   }
 
@@ -352,7 +352,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_dynamodb_table.terraform.arn
+      aws_dynamodb_table.terraform[0].arn
     ]
   }
 
@@ -366,7 +366,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_s3_bucket.terraform.arn
+      aws_s3_bucket.terraform[0].arn
     ]
   }
 
@@ -381,7 +381,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      "${aws_s3_bucket.terraform.arn}/*"
+      "${aws_s3_bucket.terraform[0].arn}/*"
     ]
   }
 
@@ -399,7 +399,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_kms_key.terraform.arn
+      aws_kms_key.terraform[0].arn
     ]
   }
 }

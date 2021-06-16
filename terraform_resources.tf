@@ -46,7 +46,7 @@ resource "aws_s3_bucket_public_access_block" "terraform" {
   provider = aws.member
   count    = var.create ? 1 : 0
 
-  bucket = aws_s3_bucket.terraform.id
+  bucket = aws_s3_bucket.terraform[0].id
 
   block_public_acls       = true
   block_public_policy     = true
