@@ -173,7 +173,7 @@ data "aws_iam_policy_document" "s3" {
       variable = "s3:x-amz-server-side-encryption-aws-kms-key-id"
 
       values = [
-        aws_kms_key.terraform.arn
+        aws_kms_key.terraform[0].arn
       ]
     }
   }
@@ -216,7 +216,7 @@ resource "aws_kms_alias" "terraform" {
   count    = var.create ? 1 : 0
 
   name          = "alias/terraform-state"
-  target_key_id = aws_kms_key.terraform.key_id
+  target_key_id = aws_kms_key.terraform[0].key_id
 }
 
 data "aws_iam_policy_document" "kms" {
