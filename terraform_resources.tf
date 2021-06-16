@@ -18,7 +18,7 @@ resource "aws_s3_bucket" "terraform" {
   policy = data.aws_iam_policy_document.s3.json
   
   
-  force_destroy = !var.create && var.force_destroy ? true : false
+  force_destroy = var.force_destroy
 
   versioning {
     enabled = true
