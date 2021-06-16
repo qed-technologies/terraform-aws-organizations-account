@@ -203,7 +203,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
       # Terraform State
       join("", aws_dynamodb_table.terraform.*.arn),
       join("", aws_s3_bucket.terraform.*.arn),
-      "${aws_s3_bucket.terraform[0].arn}/*",
+      "${join("", aws_s3_bucket.terraform.*.arn)}/*",
       # Terraform State Encryption
       join("", aws_kms_key.terraform.*.arn),
       join("", aws_kms_alias.terraform.*.arn)
