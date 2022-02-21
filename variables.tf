@@ -1,6 +1,17 @@
+variable "clean" {
+  type        = bool
+  description = "Cleans up all resources in the member account.  Should only be set to true when the account is being decommissioned"
+  default     = false
+}
+
 variable "master_account_id" {
   description = "The ID of the master account"
   type        = string
+}
+
+variable "org_name" {
+  type        = string
+  description = "Name of the Org (or department) the account belongs to.  Used for namespacing purposes."
 }
 
 variable "region" {
@@ -124,12 +135,6 @@ variable "create_iam_manager_role" {
   default     = true
 }
 
-variable "iam_namespace" {
-  description = "(optional) Namespace to categorise the IAM entities created by this module under"
-  type        = string
-  default     = "org"
-}
-
 variable "iam_manager_trusted_identities" {
   description = "(optional) a list of identities trusted to assume the IAM Manager role"
   type        = list(string)
@@ -145,6 +150,12 @@ variable "permitted_services" {
 # Security
 #-----------
 # Public Access Block
+variable "block_s3_public_access" {
+  description = "Controls account level public access block for S3"
+  type        = bool
+  default     = false
+}
+
 variable "block_public_acls" {
   description = "Whether Amazon S3 should block public ACLs for buckets in this account"
   type        = bool
@@ -170,8 +181,8 @@ variable "restrict_public_buckets" {
 }
 
 # EBS Default Encryption
-variable "ebs_default_kms_key_arn" {
-  description = "ARN of the KMS CMK to be used for ebs encryption by default"
-  type        = string
-  default     = ""
+variable "enable_default_ebs_encryption" {
+  description = "Controls default encryption control at the account level"
+  type        = bool
+  default     = true
 }

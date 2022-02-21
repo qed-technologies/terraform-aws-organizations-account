@@ -3,9 +3,9 @@ AWS_REGION				:= eu-west-2
 DIR_TERRAFORM			:= example
 FILE_CREDENTIALS_DOCKER	:= /tmp/credentials
 FILE_CREDENTIALS_HOST	:= $(HOME)/.aws/credentials
-TF_VERSION				:= 0.14.3
+TF_VERSION				:= 1.1.3
 TF_IMAGE				:= hashicorp/terraform:$(TF_VERSION)
-TF_DOCS_VERSION			:= 0.10.1
+TF_DOCS_VERSION			:= 0.16.0
 TF_DOCS_IMAGE			:= quay.io/terraform-docs/terraform-docs:$(TF_DOCS_VERSION)
 TF_CHECKOV_VERSION		:= 1.0.625
 TF_CHECKOV_IMAGE		:= bridgecrew/checkov:$(TF_CHECKOV_VERSION)
@@ -26,7 +26,7 @@ TF_CMD = docker run \
 			-w $(TF_BIND_DIR) \
 			--env AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
 			--env AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
-			--env TF_DATA_DIR=$(TF_BIND_DIR)/.terraform \
+			--env TF_DATA_DIR=$(TF_BIND_DIR)/$(DIR_TERRAFORM)/.terraform \
 			--env AWS_PROFILE=$(AWS_PROFILE) \
 			--env AWS_SHARED_CREDENTIALS_FILE=$(FILE_CREDENTIALS_DOCKER) \
 			--env AWS_SDK_LOAD_CONFIG=1 \
@@ -48,7 +48,11 @@ docs:
 		--mount type=bind,source="$(shell pwd)",destination=$(TF_BIND_DIR) \
 		-w $(TF_BIND_DIR) \
 		$(TF_DOCS_IMAGE) \
-		markdown .
+		markdown \
+		table \
+		--output-file README.md \
+		--output-mode inject \
+		.
 
 install_shellcheck:
 	@echo "Installing shellcheck..."
@@ -59,9 +63,10 @@ install_shellcheck:
 
 
 init:
-	$(TF_CMD) init \
-		$(NO_COLOR) \
-		$(DIR_TERRAFORM)
+	$(TF_CMD) \
+		-chdir=$(DIR_TERRAFORM) \
+		init \
+		$(NO_COLOR)
 
 check-fmt:
 	$(TF_CMD) fmt -check .
@@ -71,9 +76,10 @@ fmt:
 	$(TF_CMD) fmt
 
 plan:
-	$(TF_CMD) plan \
-		$(NO_COLOR) \
-		$(DIR_TERRAFORM)
+	$(TF_CMD) \
+		-chdir=$(DIR_TERRAFORM) \
+		plan \
+		$(NO_COLOR)
 
 scan:
 	$(TF_CHECKOV_CMD)

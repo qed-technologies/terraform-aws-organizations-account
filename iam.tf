@@ -1,7 +1,7 @@
 locals {
   # Multi-step process to ensure path is prefixed and 
   # suffixed with a "/"
-  iam_namespace_first_check = substr(var.iam_namespace, 0, 1) != "/" ? "/${var.iam_namespace}" : var.iam_namespace
+  iam_namespace_first_check = substr(var.org_name, 0, 1) != "/" ? "/${var.org_name}" : var.org_name
   iam_namespace_final       = substr(local.iam_namespace_first_check, length(local.iam_namespace_first_check) - 1, 1) != "/" ? "${local.iam_namespace_first_check}/" : local.iam_namespace_first_check
   # These service permissions are added to the 
   # permissions boundary policy
@@ -15,6 +15,7 @@ locals {
 # Password policy
 #------------------
 resource "aws_iam_account_password_policy" "this" {
+  count    = !var.clean ? 1 : 0
   provider = aws.member
 
   max_password_age               = var.max_password_age
@@ -33,7 +34,7 @@ resource "aws_iam_account_password_policy" "this" {
 # IAM manager role
 #-------------------
 module "iam_role_iam_manager" {
-  source = "github.com/qed-technologies/terraform-aws-iam-role?ref=v2.1.1"
+  source = "github.com/qed-technologies/terraform-aws-iam-role?ref=v3.0.0"
 
   providers = {
     aws = aws.member
@@ -50,7 +51,7 @@ module "iam_role_iam_manager" {
 
   managed_policy_arns = [
     aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write.arn
+    aws_iam_policy.terraform_state_write[0].arn
   ]
 
   tags = var.tags
@@ -60,8 +61,8 @@ module "iam_role_iam_manager" {
 # IAM Manager policy
 # --------------------
 resource "aws_iam_policy" "iam_manager" {
-  provider = aws.member
   count    = var.create_iam_manager_role ? 1 : 0
+  provider = aws.member
 
   name        = "IamManager"
   description = "Allows management of IAM entities in this account"
@@ -89,7 +90,7 @@ data "aws_iam_policy_document" "iam_manager" {
     condition {
       test     = "StringEquals"
       variable = "iam:PermissionsBoundary"
-      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/OrgBoundary"]
+      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/OrgBoundary"]
     }
   }
 
@@ -139,8 +140,8 @@ data "aws_iam_policy_document" "iam_manager" {
 # Permissions boundary policy
 # -----------------------------
 resource "aws_iam_policy" "permissions_boundary" {
-  provider = aws.member
   count    = var.create_iam_manager_role ? 1 : 0
+  provider = aws.member
 
   name        = "OrgBoundary"
   path        = local.iam_namespace_final
@@ -196,16 +197,16 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # Policies
-      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/*",
+      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/*",
       # Roles
-      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.iam_namespace}/*",
+      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.org_name}/*",
       # Terraform State
-      aws_dynamodb_table.terraform.arn,
-      aws_s3_bucket.terraform.arn,
-      "${aws_s3_bucket.terraform.arn}/*",
+      aws_dynamodb_table.terraform[0].arn,
+      aws_s3_bucket.terraform[0].arn,
+      "${aws_s3_bucket.terraform[0].arn}/*",
       # Terraform State Encryption
-      aws_kms_key.terraform.arn,
-      aws_kms_alias.terraform.arn
+      data.aws_kms_key.s3.arn,
+      data.aws_kms_alias.s3.arn
     ]
   }
 
@@ -232,12 +233,12 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # State Lock
-      aws_dynamodb_table.terraform.arn,
+      aws_dynamodb_table.terraform[0].arn,
       # State File
-      aws_s3_bucket.terraform.arn,
-      "${aws_s3_bucket.terraform.arn}/*",
+      aws_s3_bucket.terraform[0].arn,
+      "${aws_s3_bucket.terraform[0].arn}/*",
       # State Encryption
-      aws_kms_key.terraform.arn
+      data.aws_kms_key.s3.arn
     ]
   }
 
@@ -264,7 +265,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
       test     = "StringEquals"
       variable = "iam:PermissionsBoundary"
       values = [
-        "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.iam_namespace}/*"
+        "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/*"
       ]
     }
   }
@@ -329,6 +330,7 @@ data "aws_iam_policy_document" "permissions_boundary" {
 # allow IAM entities to write Terraform State
 # -----------------------------------------------
 resource "aws_iam_policy" "terraform_state_write" {
+  count    = var.create_iam_manager_role ? 1 : 0
   provider = aws.member
 
   name        = "TerraformStateWrite"
@@ -350,7 +352,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_dynamodb_table.terraform.arn
+      aws_dynamodb_table.terraform[0].arn
     ]
   }
 
@@ -364,7 +366,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_s3_bucket.terraform.arn
+      aws_s3_bucket.terraform[0].arn
     ]
   }
 
@@ -379,7 +381,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      "${aws_s3_bucket.terraform.arn}/*"
+      "${aws_s3_bucket.terraform[0].arn}/*"
     ]
   }
 
@@ -397,7 +399,7 @@ data "aws_iam_policy_document" "terraform_state_write" {
     ]
 
     resources = [
-      aws_kms_key.terraform.arn
+      data.aws_kms_key.s3.arn
     ]
   }
 }

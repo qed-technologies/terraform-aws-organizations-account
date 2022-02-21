@@ -1,4 +1,5 @@
 resource "aws_s3_account_public_access_block" "this" {
+  count    = var.block_s3_public_access ? 1 : 0
   provider = aws.member
 
   account_id              = aws_organizations_account.account.id
@@ -16,7 +17,13 @@ resource "aws_s3_account_public_access_block" "this" {
 # i.e. third party software doesn't support encryption with CMKs
 
 # Enable FDE by default
+data "aws_kms_key" "ebs" {
+  provider = aws.member
+  key_id   = "alias/aws/ebs"
+}
+
 resource "aws_ebs_encryption_by_default" "this" {
+  count    = var.enable_default_ebs_encryption ? 1 : 0
   provider = aws.member
 
   enabled = true
@@ -26,10 +33,10 @@ resource "aws_ebs_encryption_by_default" "this" {
 
 # Then if we have a KMS CMK defined then use that
 resource "aws_ebs_default_kms_key" "this" {
-  count    = var.ebs_default_kms_key_arn == "" ? 0 : 1
+  count    = var.enable_default_ebs_encryption ? 0 : 1
   provider = aws.member
 
-  key_arn = var.ebs_default_kms_key_arn
+  key_arn = data.aws_kms_key.ebs.arn
 
   depends_on = [null_resource.account_delay]
 }

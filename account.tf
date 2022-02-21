@@ -24,7 +24,7 @@ resource "aws_organizations_account" "account" {
 # to give AWS enough time to provision the new account
 resource "null_resource" "account_delay" {
   provisioner "local-exec" {
-    command = "sleep 480"
+    command = "sleep 300"
   }
   triggers = {
     "account_id" = aws_organizations_account.account.id
@@ -41,8 +41,9 @@ resource "aws_budgets_budget" "budget" {
   time_period_start = "1970-01-01_00:00"
   time_unit         = "MONTHLY"
 
-  cost_filters = {
-    LinkedAccount = aws_organizations_account.account.id
+  cost_filter {
+    name   = "LinkedAccount"
+    values = [aws_organizations_account.account.id]
   }
 
   notification {

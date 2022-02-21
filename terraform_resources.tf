@@ -1,53 +1,95 @@
 # The resources in this file initialise the account so it is
 # ready to manage Terraform Remote state
-
 locals {
-  terraform_state_bucket_name = "${aws_organizations_account.account.id}-terraform"
+  terraform_state_bucket_name = "${var.org_name}.${aws_organizations_account.account.id}.terraform"
+}
+
+data "aws_kms_key" "s3" {
+  provider = aws.member
+  key_id   = "alias/aws/s3"
+}
+
+data "aws_kms_alias" "s3" {
+  name = "alias/aws/s3"
 }
 
 #----------------------
 # Remote state bucket
 #----------------------
 resource "aws_s3_bucket" "terraform" {
+  count    = !var.clean ? 1 : 0
   provider = aws.member
 
   #checkov:skip=CKV_AWS_18:Access logs not needed yet
   #checkov:skip=CKV_AWS_52:MFA delete not needed yet
   bucket = local.terraform_state_bucket_name
+}
+
+resource "aws_s3_bucket_policy" "terraform" {
+  count    = !var.clean ? 1 : 0
+  provider = aws.member
+
+  bucket = aws_s3_bucket.terraform[count.index].id
   policy = data.aws_iam_policy_document.s3.json
+}
 
-  versioning {
-    enabled = true
+resource "aws_s3_bucket_versioning" "terraform" {
+  count    = !var.clean ? 1 : 0
+  provider = aws.member
+
+  bucket = aws_s3_bucket.terraform[count.index].id
+
+  versioning_configuration {
+    status = "Enabled"
   }
+}
 
-  lifecycle_rule {
-    enabled = true
+resource "aws_s3_bucket_lifecycle_configuration" "terraform" {
+  count    = !var.clean ? 1 : 0
+  provider = aws.member
 
-    noncurrent_version_expiration {
+  bucket = aws_s3_bucket.terraform[count.index].bucket
+
+  rule {
+    id = "retention"
+
+    status = "Enabled"
+
+    expiration {
       days = 90
-    }
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm     = "aws:kms"
-        kms_master_key_id = aws_kms_key.terraform.arn
-      }
     }
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "terraform" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "terraform" {
+  count    = !var.clean ? 1 : 0
   provider = aws.member
 
-  bucket = aws_s3_bucket.terraform.id
+  bucket = aws_s3_bucket.terraform[count.index].bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = "aws/s3"
+      sse_algorithm     = "aws:kms"
+    }
+    # Reduces costs
+    # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-key.html
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "terraform" {
+  count    = !var.clean ? 1 : 0
+  provider = aws.member
+
+  bucket = aws_s3_bucket.terraform[count.index].id
 
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
 
 #-----------------------------
 # Remote state bucket policy
@@ -168,7 +210,7 @@ data "aws_iam_policy_document" "s3" {
       variable = "s3:x-amz-server-side-encryption-aws-kms-key-id"
 
       values = [
-        aws_kms_key.terraform.arn
+        data.aws_kms_key.s3.arn
       ]
     }
   }
@@ -178,6 +220,7 @@ data "aws_iam_policy_document" "s3" {
 # DynamoDB state lock table
 #----------------------------
 resource "aws_dynamodb_table" "terraform" {
+  count    = !var.clean ? 1 : 0
   provider = aws.member
 
   #checkov:skip=CKV_AWS_28:State table doesn't need backup enable
@@ -193,69 +236,3 @@ resource "aws_dynamodb_table" "terraform" {
   }
 }
 
-#----------
-# KMS CMK
-#----------
-resource "aws_kms_key" "terraform" {
-  provider = aws.member
-
-  description         = "Terraform State Key"
-  policy              = data.aws_iam_policy_document.kms.json
-  enable_key_rotation = true
-}
-
-resource "aws_kms_alias" "terraform" {
-  provider = aws.member
-
-  name          = "alias/terraform-state"
-  target_key_id = aws_kms_key.terraform.key_id
-}
-
-data "aws_iam_policy_document" "kms" {
-  statement {
-    sid = "Allow access for Key Administrators"
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${aws_organizations_account.account.id}:root"]
-    }
-
-    actions = [
-      "kms:Create*",
-      "kms:Describe*",
-      "kms:Enable*",
-      "kms:List*",
-      "kms:Put*",
-      "kms:Update*",
-      "kms:Revoke*",
-      "kms:Disable*",
-      "kms:Get*",
-      "kms:Delete*",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "Allow use of the key"
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${aws_organizations_account.account.id}:root"]
-    }
-
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey"
-    ]
-
-    resources = ["*"]
-  }
-}

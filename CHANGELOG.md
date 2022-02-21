@@ -1,5 +1,16 @@
 # Release Notes
 
+## v2.0.0 2022-02-21
+
+### Breaking Changes
+
+- Update Terraform version to `1.1.0`
+- Update AWS provider to `4.0.0`
+- Refactor S3 resources to be compatible with v4.0.0 of the AWS provider
+- Add `count` meta arguments to all member account resources
+- Remove CMK for default EBS full disk encruyption.  Using the Amazon Managed Key is sufficient for now
+- Add `org_name` variable to namespace S3 bucket and IAM resources
+
 ## v1.4.0 2021-01-25
 
 ### Enhancements
