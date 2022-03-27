@@ -96,11 +96,17 @@ data "aws_iam_policy_document" "iam_manager" {
 
     actions = [
       "iam:DeleteRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:DetachRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:UpdateRole",
+      "iam:UpdateRoleDescription",
       "iam:Get*",
       "iam:List*",
       "iam:TagRole",
-      "iam:UntagRole",
-      "iam:UpdateAssumeRolePolicy"
+      "iam:UntagRole"
     ]
 
     resources = [
