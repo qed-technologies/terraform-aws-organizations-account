@@ -49,11 +49,11 @@ module "iam_role_iam_manager" {
   trusted_identities       = var.iam_manager_trusted_identities
   permissions_boundary_arn = concat(aws_iam_policy.permissions_boundary.*.arn, [""])[0]
 
-  managed_policy_arns = [
+  managed_policy_arns = concat([
     aws_iam_policy.iam_manager[0].arn,
     aws_iam_policy.terraform_state_write[0].arn,
     concat(aws_iam_policy.force_boundary_usage.*.arn, [""])[0]
-  ]
+  ])
 
   tags = var.tags
 }
