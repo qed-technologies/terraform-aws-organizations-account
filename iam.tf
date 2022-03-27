@@ -104,10 +104,8 @@ data "aws_iam_policy_document" "iam_manager" {
       "iam:CreatePolicyVersion",
       "iam:DeletePolicy",
       "iam:DeletePolicyVersion",
-      "iam:GetPolicy",
-      "iam:GetPolicyVersion",
-      "iam:ListPolicy",
-      "iam:ListPolicyVersions",
+      "iam:Get*",
+      "iam:List*",
     ]
 
     resources = [
