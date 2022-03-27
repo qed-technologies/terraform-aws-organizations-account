@@ -118,10 +118,12 @@ resource "aws_iam_policy" "force_boundary_usage" {
   name        = "ForceBoundaryUsage"
   path        = local.iam_namespace_final
   description = "Ensures all IAM roles use the Permissions Boundary"
-  policy      = data.aws_iam_policy_document.force_boundary_usage.json
+  policy      = concat(data.aws_iam_policy_document.force_boundary_usage.*.json, [""])[0]
 }
 
 data "aws_iam_policy_document" "force_boundary_usage" {
+  count = var.create_iam_manager_role && var.use_permissions_boundary ? 1 : 0
+
   statement {
     sid = "EnforceIamBoundary"
 
