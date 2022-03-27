@@ -146,6 +146,12 @@ variable "permitted_services" {
   type        = list(string)
 }
 
+variable "use_permissions_boundary" {
+  description = "Enables the use of a permissions boundary with the IAM Manager role."
+  type        = bool
+  default     = true
+}
+
 #-----------
 # Security
 #-----------

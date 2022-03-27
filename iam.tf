@@ -46,12 +46,11 @@ module "iam_role_iam_manager" {
   description = "Deployed by the Organization to manage IAM resource in this account"
   path        = local.iam_namespace_final
 
-  trusted_identities       = var.iam_manager_trusted_identities
-  permissions_boundary_arn = aws_iam_policy.permissions_boundary[0].arn
+  trusted_identities = var.iam_manager_trusted_identities
 
   managed_policy_arns = [
-    aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write[0].arn
+    concat(aws_iam_policy.iam_manager.*.arn, [""])[0],
+    concat(aws_iam_policy.terraform_state_write.*.arn, [""])[0]
   ]
 
   tags = var.tags
@@ -71,29 +70,6 @@ resource "aws_iam_policy" "iam_manager" {
 }
 
 data "aws_iam_policy_document" "iam_manager" {
-  statement {
-    sid = "EnforceIamBoundary"
-
-    effect = "Allow"
-
-    actions = [
-      "iam:AttachRolePolicy",
-      "iam:CreateRole",
-      "iam:DeleteRolePolicy",
-      "iam:DetachRolePolicy",
-      "iam:PutRolePermissionsBoundary",
-      "iam:PutRolePolicy"
-    ]
-
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "iam:PermissionsBoundary"
-      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/OrgBoundary"]
-    }
-  }
-
   statement {
     sid = "ManageIamPolicies"
 
@@ -119,205 +95,23 @@ data "aws_iam_policy_document" "iam_manager" {
     effect = "Allow"
 
     actions = [
-      "iam:DeleteRole",
-      "iam:GetRole",
-      "iam:ListAttachedRolePolicies",
-      "iam:ListInstanceProfilesForRole",
-      "iam:TagRole",
-      "iam:UntagRole",
-      "iam:UpdateAssumeRolePolicy"
-    ]
-
-    resources = [
-      "arn:aws:iam::${aws_organizations_account.account.id}:role/*"
-    ]
-  }
-}
-
-# -----------------------------
-# Permissions boundary policy
-# -----------------------------
-resource "aws_iam_policy" "permissions_boundary" {
-  count    = var.create_iam_manager_role ? 1 : 0
-  provider = aws.member
-
-  name        = "OrgBoundary"
-  path        = local.iam_namespace_final
-  description = "Organization permissions boundary"
-  policy      = data.aws_iam_policy_document.permissions_boundary.json
-}
-
-data "aws_iam_policy_document" "permissions_boundary" {
-  statement {
-    sid = "PreventBoundaryRemoval"
-
-    effect = "Deny"
-
-    actions = [
-      "iam:DeleteRolePermissionsBoundary"
-    ]
-
-    resources = [
-      "arn:aws:iam::${aws_organizations_account.account.id}:role/*"
-    ]
-  }
-
-  statement {
-    sid = "PreventOrgManagedResourceUpdates"
-
-    effect = "Deny"
-
-    actions = [
-      # Policies
-      "iam:CreatePolicyVersion",
-      "iam:DeletePolicy",
-      "iam:DeletePolicyVersion",
-      "iam:SetDefaultPolicyVersion",
-      # Roles
-      "iam:UpdateAssumeRolePolicy",
-      # Terraform State
-      "dynamodb:DeleteTable",
-      "s3:DeleteBucket",
-      "s3:DeleteObject",
-      "s3:PutBucketVersioning",
-      # Terraform State Encryption
-      "kms:CancelKeyDeletion",
-      "kms:DeleteAlias",
-      "kms:DisableKey",
-      "kms:DisableKeyRotation",
-      "kms:GetKeyPolicy",
-      "kms:GetKeyRotationStatus",
-      "kms:PutKeyPolicy",
-      "kms:ScheduleKeyDeletion",
-      "kms:UntagResource",
-      "kms:UpdateAlias"
-    ]
-
-    resources = [
-      # Policies
-      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/*",
-      # Roles
-      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.org_name}/*",
-      # Terraform State
-      aws_dynamodb_table.terraform[0].arn,
-      aws_s3_bucket.terraform[0].arn,
-      "${aws_s3_bucket.terraform[0].arn}/*",
-      # Terraform State Encryption
-      data.aws_kms_key.s3.arn,
-      data.aws_kms_alias.s3.arn
-    ]
-  }
-
-  statement {
-    sid    = "ManageTerraformRemoteState"
-    effect = "Allow"
-
-    actions = [
-      # State Lock
-      "dynamodb:GetItem",
-      "dynamodb:PutItem",
-      "dynamodb:DeleteItem",
-      # State File
-      "s3:GetObject",
-      "s3:ListBucket",
-      "s3:PutObject",
-      # State Encryption
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey"
-    ]
-
-    resources = [
-      # State Lock
-      aws_dynamodb_table.terraform[0].arn,
-      # State File
-      aws_s3_bucket.terraform[0].arn,
-      "${aws_s3_bucket.terraform[0].arn}/*",
-      # State Encryption
-      data.aws_kms_key.s3.arn
-    ]
-  }
-
-  statement {
-    sid = "EnforceIamBoundary"
-
-    effect = "Allow"
-
-    actions = [
       "iam:AttachRolePolicy",
+      "iam:DeleteRole",
       "iam:CreateRole",
       "iam:DeleteRole",
-      "iam:DeleteRolePolicy",
       "iam:DetachRolePolicy",
-      "iam:PutRolePermissionsBoundary",
-      "iam:PutRolePolicy"
-    ]
-
-    resources = [
-      "*"
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "iam:PermissionsBoundary"
-      values = [
-        "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/*"
-      ]
-    }
-  }
-
-  statement {
-    sid = "AllowIamManagement"
-
-    effect = "Allow"
-
-    #checkov:skip=CKV_AWS_49:Wildcards on read-only actions are acceptable
-    actions = [
-      "iam:AddRoleToInstanceProfile",
-      "iam:CreateInstanceProfile",
-      "iam:DeleteInstanceProfile",
+      "iam:PutRolePolicy",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:UpdateRole",
+      "iam:UpdateRoleDescription",
       "iam:Get*",
       "iam:List*",
-      "iam:RemoveRoleFromInstanceProfile"
-    ]
-
-    resources = [
-      "*"
-    ]
-  }
-
-  statement {
-    sid = "ManageServiceLinkedRoles"
-
-    effect = "Allow"
-
-    actions = [
-      "iam:ServiceLinkedRole*"
+      "iam:TagRole",
+      "iam:UntagRole"
     ]
 
     resources = [
       "arn:aws:iam::${aws_organizations_account.account.id}:role/*"
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "iam:AWSServiceName"
-      values   = local.permitted_service_names
-    }
-  }
-
-  statement {
-    sid = "AllowedServices"
-
-    effect = "Allow"
-
-    #checkov:skip=CKV_AWS_1:False positive this doesn't allow full admin
-    actions = local.permitted_service_actions
-
-    resources = [
-      "*"
     ]
   }
 }
