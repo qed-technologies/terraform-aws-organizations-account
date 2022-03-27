@@ -49,8 +49,8 @@ module "iam_role_iam_manager" {
   trusted_identities = var.iam_manager_trusted_identities
 
   managed_policy_arns = [
-    aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write[0].arn
+    concat(aws_iam_policy.iam_manager.*.arn, [""])[0],
+    concat(aws_iam_policy.terraform_state_write.*.arn, [""])[0]
   ]
 
   tags = var.tags
