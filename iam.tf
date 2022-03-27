@@ -95,6 +95,7 @@ data "aws_iam_policy_document" "iam_manager" {
     effect = "Allow"
 
     actions = [
+      "iam:AttachRolePolicy",
       "iam:DeleteRole",
       "iam:CreateRole",
       "iam:DeleteRole",
