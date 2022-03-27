@@ -195,9 +195,9 @@ data "aws_iam_policy_document" "permissions_boundary" {
 
     resources = [
       # Policies
-      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/*",
+      "arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/OrgBoundary",
       # Roles
-      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.org_name}/*",
+      "arn:aws:iam::${aws_organizations_account.account.id}:role/${var.org_name}/IamManager",
       # Terraform State
       aws_dynamodb_table.terraform[0].arn,
       aws_s3_bucket.terraform[0].arn,
