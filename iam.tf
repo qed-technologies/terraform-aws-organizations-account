@@ -47,11 +47,12 @@ module "iam_role_iam_manager" {
   path        = local.iam_namespace_final
 
   trusted_identities       = var.iam_manager_trusted_identities
-  permissions_boundary_arn = aws_iam_policy.permissions_boundary[0].arn
+  permissions_boundary_arn = concat(aws_iam_policy.permissions_boundary.*.arn, [""])[0]
 
   managed_policy_arns = [
     aws_iam_policy.iam_manager[0].arn,
-    aws_iam_policy.terraform_state_write[0].arn
+    aws_iam_policy.terraform_state_write[0].arn,
+    concat(aws_iam_policy.force_boundary_usage.*.arn, [""])[0]
   ]
 
   tags = var.tags
@@ -71,29 +72,6 @@ resource "aws_iam_policy" "iam_manager" {
 }
 
 data "aws_iam_policy_document" "iam_manager" {
-  statement {
-    sid = "EnforceIamBoundary"
-
-    effect = "Allow"
-
-    actions = [
-      "iam:AttachRolePolicy",
-      "iam:CreateRole",
-      "iam:DeleteRolePolicy",
-      "iam:DetachRolePolicy",
-      "iam:PutRolePermissionsBoundary",
-      "iam:PutRolePolicy"
-    ]
-
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "iam:PermissionsBoundary"
-      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/OrgBoundary"]
-    }
-  }
-
   statement {
     sid = "ManageIamPolicies"
 
@@ -130,6 +108,41 @@ data "aws_iam_policy_document" "iam_manager" {
     resources = [
       "arn:aws:iam::${aws_organizations_account.account.id}:role/*"
     ]
+  }
+}
+
+resource "aws_iam_policy" "force_boundary_usage" {
+  count    = var.create_iam_manager_role && var.use_permissions_boundary ? 1 : 0
+  provider = aws.member
+
+  name        = "ForceBoundaryUsage"
+  path        = local.iam_namespace_final
+  description = "Ensures all IAM roles use the Permissions Boundary"
+  policy      = data.aws_iam_policy_document.force_boundary_usage.json
+}
+
+data "aws_iam_policy_document" "force_boundary_usage" {
+  statement {
+    sid = "EnforceIamBoundary"
+
+    effect = "Allow"
+
+    actions = [
+      "iam:AttachRolePolicy",
+      "iam:CreateRole",
+      "iam:DeleteRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:PutRolePermissionsBoundary",
+      "iam:PutRolePolicy"
+    ]
+
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PermissionsBoundary"
+      values   = ["arn:aws:iam::${aws_organizations_account.account.id}:policy/${var.org_name}/OrgBoundary"]
+    }
   }
 }
 
