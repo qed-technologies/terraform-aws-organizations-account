@@ -148,9 +148,10 @@ data "aws_iam_policy_document" "force_boundary_usage" {
 
 # -----------------------------
 # Permissions boundary policy
+# 
 # -----------------------------
 resource "aws_iam_policy" "permissions_boundary" {
-  count    = var.create_iam_manager_role && var.use_permissions_boundary ? 1 : 0
+  count    = var.create_iam_manager_role ? 1 : 0
   provider = aws.member
 
   name        = "OrgBoundary"
